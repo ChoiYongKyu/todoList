@@ -8,8 +8,51 @@
 
 let taskInput = document.getElementById("task-input");
 let addButton = document.getElementById("add-button");
+let tabs = document.querySelectorAll(".task-tabs div");
+let underLine = document.getElementById("under-line");
 let taskList = [];
+let mode = "all";
+let filterList = [];
 
+for (let i = 1; i < tabs.length; i++) {
+  tabs[i].addEventListener("click", function (event) {
+    filter(event);
+  });
+}
+//필터링
+function filter(event) {
+  //console.log(event.target.id);
+  mode = event.target.id;
+  underLine.style.width = event.target.offsetWidth + "px";
+  underLine.style.left = event.target.offsetLeft + "px";
+  underLine.style.top =
+    event.target.offsetTop + (event.target.offsetHeight - 4) + "px";
+  filterList = [];
+  document.getElementById("under-line").style.width =
+    event.target.offsetWidth + "px";
+
+  if (mode == "all") {
+    render();
+  } else if (mode == "ongoing") {
+    for (let i = 0; i < taskList.length; i++) {
+      if (taskList[i].isComplete == false) {
+        filterList.push(taskList[i]);
+      }
+    }
+    render();
+  } else if (mode == "done") {
+    for (let i = 0; i < taskList.length; i++) {
+      if (taskList[i].isComplete == true) {
+        filterList.push(taskList[i]);
+      }
+    }
+    render();
+  }
+  console.log(filterList);
+  console.log(event.target.id, "클릭댐");
+}
+
+console.log(tabs);
 addButton.addEventListener("click", addTask);
 taskInput.addEventListener("focus", function () {
   taskInput.value = "";
@@ -17,35 +60,45 @@ taskInput.addEventListener("focus", function () {
 
 function addTask() {
   let taskContent = taskInput.value;
-  let task = {
-    id: randomIDGenerate(),
-    taskContent: taskInput.value,
-    isComplete: false,
-  };
-  taskList.push(task);
-  console.log(task);
-  render();
+  if (taskContent != "") {
+    let task = {
+      id: randomIDGenerate(),
+      taskContent: taskInput.value,
+      isComplete: false,
+    };
+    taskList.push(task);
+    console.log(task);
+    render();
+    taskInput.value = "";
+  } else {
+    alert("내용을 입력하세요");
+  }
 }
 
 function render() {
-  console.log("render!!!");
+  let list = [];
+  if (mode == "all") {
+    list = taskList;
+  } else if (mode == "ongoing" || mode == "done") {
+    list = filterList;
+  }
   let resultHTML = "";
-  console.log(taskList.length);
-  for (let i = 0; i < taskList.length; i++) {
-    if (taskList[i].isComplete == true) {
+  console.log(list.length);
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].isComplete == true) {
       resultHTML += ` <div class="task">
-                    <div class="task-done">${taskList[i].taskContent}</div>
+                    <div class="task-done">${list[i].taskContent}</div>
                     <div>
-                        <button onclick="toggleComplete('${taskList[i].id}')">Check</button>
-                        <button onclick="deleteTask('${taskList[i].id}')">Delete</button>
+                        <button onclick="toggleComplete('${list[i].id}')">Check</button>
+                        <button onclick="deleteTask('${list[i].id}')">Delete</button>
                     </div>
                 </div>`;
     } else {
       resultHTML += ` <div class="task">
-                    <div>${taskList[i].taskContent}</div>
+                    <div>${list[i].taskContent}</div>
                     <div>
-                        <button onclick="toggleComplete('${taskList[i].id}')">Check</button>
-                        <button onclick="deleteTask('${taskList[i].id}')">Delete</button>
+                        <button onclick="toggleComplete('${list[i].id}')">Check</button>
+                        <button onclick="deleteTask('${list[i].id}')">Delete</button>
                     </div>
                 </div>`;
     }
@@ -68,10 +121,11 @@ function deleteTask(id) {
   console.log("삭제하다");
   for (let i = 0; i < taskList.length; i++) {
     if (taskList[i].id == id) {
-      taskList.splice(i,1);
+      taskList.splice(i, 1);
       break;
     }
   }
+  //filter();
   render();
 }
 
